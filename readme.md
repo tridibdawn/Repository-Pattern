@@ -270,7 +270,7 @@ class UserController extends Controller
     public function index()
     {
         $users = $this->user->index();
-        return view('users.index, [ 'users' => $users ]);
+        return view('users.index', [ 'users' => $users ]);
     }
 
     /**
@@ -406,7 +406,7 @@ After this just run `composer dump-autoload` into your terminal in the root proj
 
 ### Note:
 
-Although, all the fundamentals and procedures of ___`Repository Pattern`___ is described in above instructions but still there is one more _standard_ that developers should follow to write clean code, i.e. _"keep your controller as light-weight as possible"_ for there is one more step that you can include is write your validation in ___Request___ for that you can follow <a href="https://laravel.com/docs/5.8/validation">Laravel Officail Documentation</a> or by searching online _"laravel request validation"_. 
+Although, all the fundamentals and procedures of ___`Repository Pattern`___ is described in above instructions but still there is one more _standard_ that developers should follow to write clean code, i.e. _"keep your controller as light-weight as possible"_ for there is one more step that you can include is write your validation in ___Request___ for that you can follow <a href="https://laravel.com/docs/5.8/validation">Laravel Official Documentation</a> or by searching online _"laravel request validation"_. 
 
 ### Conclusion
 Hope the content of this tutorial is useful for the readers. Happy Coding...
