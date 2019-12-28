@@ -1,72 +1,412 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+### Laravel Repository Pattern
+
+Normal Laravel application is based upon __MVC (Model-View-Controller)__ design pattern, which derives that all the database relation are established in `Model` layer and `Controller` handles all responses from client and server and give output as per defined logic.
+
+As Software Development Industry grows the maintainability of code became better and design patterns are modified too. One of those design pattern is __`Repository Pattern`__. The diagram given below describes the workflow of `Repository Pattern`.
 
 <p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
+<img src="public/screenshots/Repository Pattern.jpg" alt="Repository Pattern" width="500">
 </p>
 
-## About Laravel
+##### Repository Layer
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The first layer of __`Repository Pattern`__ is __Repository__. This layer directly deals with __Model__. All the database related operations must be performed here.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+###### Example
+- __Model (User.php)__
+```php
+<?php
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+namespace App;
 
-## Learning Laravel
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+class User extends Authenticatable
+{
+    use Notifiable;
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
 
-## Laravel Sponsors
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+}
+```
+- __Repository (UserRepository.php)__
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
+Like `Model` and `Controller` __Repository__ doesn't have a command to make one __Repository__. For that you have to create the directory of the __Repository__ in the `App` directory like, `App\Repositories\UserRepository.php`. The code of the repository is like the code mentioned below,
 
-## Contributing
+```php
+<?php
+namespace App\Repositories;
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+use App\User;
+use App\Interfaces\UserInterface;
 
-## Security Vulnerabilities
+class UserRepository implements UserInterface
+{
+    protected $user;
+    
+    public function __construct(User $user)
+    {
+        $this->user = $user;
+    }
+    
+    public function index()
+    {
+        $users = $this->user::all();
+        return $users;
+    }
+    
+    public function store($data)
+    {
+        $user = $this->user::create($data);
+        return $user;
+    }
+    
+    public function show($id)
+    {
+        $user = $this->user::findOrFail($id);
+        return $user;
+    }
+    
+    public function update($data, $id)
+    {
+        $user = $this->user::findOrFail($id);
+        $user->fill($data);
+        $user->save();
+        return $user;
+    }
+    
+    public function destroy($id)
+    {
+        $user = $this->user::findOrFail($id);
+        $user->delete();
+        return $user;
+    }
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- __Interface (UserInterface.php)__
 
-## License
+To create an __Interface__ say, __UserInterface.php__ you again have to create a directory and `interface` manually as `App\Interfaces\UserInterface.php`. You must declare all functions of your `Repository` here. For e.g. if you are writing `UserInterface.php` then all fuctions of `UserRepository.php` must be declared here first. The code of in this example is as follows,
 
-The Laravel framework is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```php
+<?php
+namespace App\Interfaces;
+
+interface UserInterface
+{
+    public function index();
+    public function store($data);
+    public function show($id);
+    public function update($data, $id);
+    public function destroy($id);
+}
+```
+<h4> Interface & Repository bind</h4>
+
+This __Repository Pattern__ won't work if you haven't bind your __Interface__ and __Repository__ properly. Here in this case an example with step by step is given, how to bind each `Repository` and `Interface`. The binding of `UserInterface.php` and `UserRepository.php` is as follows,
+
+1. Go to `App\Providers\AppServiceProvider.php`.
+2. Add a line `$this->app->bind('App\Interfaces\UserInterface', 'App\Repositories\UserRepository');` inside register method like below given code.
+
+__(AppServiceProvider.php) before__
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        //
+    }
+}
+```
+__(AppServiceProvider.php) after adding bind__
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->app->bind('App\Interfaces\UserInterface', 'App\Repositories\UserRepository');
+    }
+
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        //
+    }
+}
+```
+- __Service (UserService.php)__
+
+Add a directory inside `App` directory like `App\Services\UserService.php` and add the code in following mannar,
+```php
+<?php
+namespace App\Services;
+
+use App\Interfaces\UserInterface;
+
+class UserService
+{
+    protected $user;
+    
+    public function __construct(UserInterface $user)
+    {
+        $this->user = $user;
+    }
+    
+    public function index()
+    {
+        $users = $this->user->index();
+        return $users;
+    }
+    
+    public function store($data)
+    {
+        $user = $this->user->store($data);
+        return $user;
+    }
+    
+    public function show($id)
+    {
+        $user = $this->user->show($id);
+        return $user;
+    }
+    
+    public function update($data, $id)
+    {
+        $user = $this->user->update($data, $id);
+        return $user;
+    }
+    
+    public function destroy($id)
+    {
+        $user = $this->user->destroy($id);
+        return $user;
+    }
+}
+```
+- __Controller (UserController.php)__
+Controller will be generated as per Laravel default rule, in this case using `php artisan make:controller UserController -r` for resourceful ___UserController___. The controller code is as follows,
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Services\UserService;
+
+class UserController extends Controller
+{
+    protected $user;
+    public function __construct(UserService $user)
+    {
+        $this->user = $user;
+    }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $users = $this->user->index();
+        return view('users.index, [ 'users' => $users ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('users.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $this->user->create($request->all());
+        return redirect('/users');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $user = $this->user->show($id);
+        return view('users.show', [ 'user' => $user ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $user = $this->user->show($id);
+        return view('users.edit', [ 'user' => $user ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $this->user->update($request->all(), $id);
+        return redirect('/users');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $this->user->destroy($id);
+        return redirect('/users');
+    }
+}
+```
+- __Helper (Helper.php)__
+
+`Helper` completely justifies its name. Any additional operation other than `CRUD` operation can be written in `helper`. Just create a directory as __`App\Helpers\Helper.php`__ and write your code inside it. For example as the code given below,
+
+```php
+<?php
+use Illuminate\Support\Facades\DB;
+
+if (!function_exists('user_counts'))
+{
+    function user_counts()
+    {
+        return DB::table('users')->count();
+    }
+}
+```
+After writing this in _`Helper.php`_ you can directly call it in _controller_ and return its value directly to the view by storing the return value of the `helper` method into a _variable_.
+
+###### COMMON ISSUES FOR HELPER
+- Even if you have done the steps correctly, you can get error like, Seems like `Call to undefined function App\Http\Controllers\user_counts()`. To fix this problem, you just have to goto your `composer.json` file and look for,
+
+```json
+"autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ]
+    },
+```
+
+And add the following lines into `"autoload"` object
+
+```json
+"files": [
+            "app/helpers/helper.php"
+        ]
+```
+
+After adding this your `"autoload"` object should look like as follows,
+
+```json
+"autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ],
+        "files": [
+            "app/helpers/helper.php"
+        ]
+    },
+```
+After this just run `composer dump-autoload` into your terminal in the root project directory.
+
+### Note:
+
+Although, all the fundamentals and procedures of ___`Repository Pattern`___ is described in above instructions but still there is one more _standard_ that developers should follow to write clean code, i.e. _"keep your controller as light-weight as possible"_ for there is one more step that you can include is write your validation in ___Request___ for that you can follow <a href="https://laravel.com/docs/5.8/validation">Laravel Officail Documentation</a> or by searching online _"laravel request validation"_. 
+
+### Conclusion
+Hope the content of this tutorial is useful for the readers. Happy Coding...
