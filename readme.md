@@ -410,3 +410,15 @@ Although, all the fundamentals and procedures of ___`Repository Pattern`___ is d
 
 ### Conclusion
 Hope the content of this tutorial is useful for the readers. Happy Coding...
+
+## Application Setup Instructions
+
+1. `git clone https://github.com/tridibdawn/Repository-Pattern.git`
+2. `git checkout -b "<your-branch>"`
+3. copy _.env.example_ into _.env_ 
+4. Setup _database_ in _.env_ 
+5. Change _CACHE_DRIVER=file_ to _CACHE_DRIVER=array_ 
+6. Run `php artisan config:cache`
+7. Run `composer install`
+8. Run `php artisan key:generate`
+9. `php artisan serve`

@@ -17,7 +17,8 @@ class UserController extends Controller {
 	 */
 	public function index() {
 		$users = $this->user->index();
-		return view('users.index', ['users' => $users]);
+		$user_counts = user_counts();
+		return view('users.index', ['users' => $users, 'user_counts' => $user_counts]);
 	}
 
 	/**
@@ -36,7 +37,7 @@ class UserController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function store(Request $request) {
-		$this->user->create($request->all());
+		$this->user->store($request->all());
 		return redirect('/users');
 	}
 
